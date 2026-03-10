@@ -45,10 +45,10 @@ export default function Hero() {
             </p>
             <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-bold leading-tight mb-6">
               Welcome to <br />
-              <span className="text-brand-gold italic">Matura YP Consulting</span>
+              <span className="text-brand-gold italic text-4xl md:text-5xl lg:text-6xl">Matura YP Consulting & Audit Co., Ltd.</span>
             </h1>
             <p className="text-gray-300 text-lg md:text-xl mb-10 leading-relaxed max-w-2xl">
-              At Matura YP Consulting & Audit, we are backed by a team of experienced professionals 
+              At Matura YP Consulting & Audit Co., Ltd., we are backed by a team of experienced professionals 
               with a strong belief that "Client success is our success." Our vision is to become 
               your trusted partner.
             </p>

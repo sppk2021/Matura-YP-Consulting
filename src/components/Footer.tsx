@@ -35,31 +35,30 @@ export default function Footer() {
               />
             </div>
             <span className="font-serif font-bold text-lg tracking-tight text-white">
-              Matura YP Consulting
+              Matura YP Consulting & Audit Co., Ltd.
             </span>
           </div>
 
           {/* Navigation Links */}
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-medium text-white/90">
-            <a href="#home" className="hover:text-brand-navy transition-colors">Home</a>
-            <a href="#about" className="hover:text-brand-navy transition-colors">About</a>
-            <a href="#services" className="hover:text-brand-navy transition-colors">Services</a>
-            <a href="#projects" className="hover:text-brand-navy transition-colors">Projects</a>
-            <a href="#contact" className="hover:text-brand-navy transition-colors">Contact</a>
+            <a href="#home" className="hover:text-brand-gold transition-colors">Home</a>
+            <a href="#about" className="hover:text-brand-gold transition-colors">About</a>
+            <a href="#services" className="hover:text-brand-gold transition-colors">Services</a>
+            <a href="#contact" className="hover:text-brand-gold transition-colors">Contact</a>
           </div>
 
           {/* Social Icons */}
           <div className="flex justify-center gap-4">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-navy hover:scale-110 transition-all duration-300" aria-label="Facebook">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-gold hover:scale-110 transition-all duration-300" aria-label="Facebook">
               <Facebook className="w-4 h-4" />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-navy hover:scale-110 transition-all duration-300" aria-label="Twitter">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-gold hover:scale-110 transition-all duration-300" aria-label="Twitter">
               <Twitter className="w-4 h-4" />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-navy hover:scale-110 transition-all duration-300" aria-label="LinkedIn">
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-gold hover:scale-110 transition-all duration-300" aria-label="LinkedIn">
               <Linkedin className="w-4 h-4" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-navy hover:scale-110 transition-all duration-300" aria-label="Instagram">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-brand-gold hover:scale-110 transition-all duration-300" aria-label="Instagram">
               <Instagram className="w-4 h-4" />
             </a>
           </div>
@@ -67,7 +66,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="max-w-7xl mx-auto px-6 mt-6 pt-4 border-t border-white/20 text-center text-white/70 text-xs">
-          © {new Date().getFullYear()} Matura YP Consulting | All Rights Reserved
+          © {new Date().getFullYear()} Matura YP Consulting & Audit Co., Ltd. | All Rights Reserved
         </div>
       </div>
     </footer>

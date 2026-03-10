@@ -268,7 +268,7 @@ export default function FAQ() {
 
                 {faqCategories[activeCategory].faqs.map((faq, index) => (
                   <div 
-                    key={index} 
+                    key={faq.question} 
                     className={`bg-white/5 border transition-all duration-300 rounded-sm overflow-hidden ${
                       activeIndex === index ? 'border-brand-gold/50 ring-1 ring-brand-gold/20' : 'border-white/10'
                     }`}

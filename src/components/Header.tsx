@@ -13,7 +13,6 @@ const navItems = [
   { name: 'Home', href: '#home' },
   { name: 'Who We Are', href: '#about' },
   { name: 'Services', href: '#services' },
-  { name: 'Projects', href: '#projects' },
   { name: 'Publication', href: '#publication' },
   { name: 'FAQs', href: '#faqs' },
   { name: 'Contact', href: '#contact' },
@@ -49,8 +48,8 @@ export default function Header() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <span className="font-serif font-bold text-2xl text-white tracking-tight">
-            Matura YP Consulting
+          <span className="font-serif font-bold text-xl md:text-2xl text-white tracking-tight">
+            Matura YP Consulting & Audit Co., Ltd.
           </span>
         </a>
 
