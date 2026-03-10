@@ -65,7 +65,7 @@ const publicationCategories = [
     category: 'Other',
     icon: Calendar,
     items: [
-      { title: 'Myanmar Calendar', link: '#' }
+      { title: 'Myanmar Calendar', link: 'https://myanmarcalendar.com/' }
     ]
   }
 ];
