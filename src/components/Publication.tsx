@@ -20,7 +20,7 @@ const publicationCategories = [
       { title: 'Myanmar Companies law', link: 'https://www.myco.dica.gov.mm/documentation/mm/MCL.en-US.pdf' },
       { title: 'Foreign Investment Law', link: 'https://meriyadh.org/wp-content/uploads/2024/05/foreign-investment-law.pdf' },
       { title: 'Director Guide', link: 'https://www.myco.dica.gov.mm/documentation/mm/DirectorGuide.en-US.pdf' },
-      { title: 'Special Economic Zone Law', link: 'https://www.thilawasez.gov.mm/page/sez' }
+      { title: 'Special Economic Zone Law', link: 'https://myanmartradeportal.gov.mm/kcfinder/upload/files/myanmarspecialeconomiczonelaw.pdf' }
     ]
   },
   {
@@ -33,15 +33,14 @@ const publicationCategories = [
       { title: 'Income Tax Law', link: 'https://www.ird.gov.mm/storage/laws/67233b988a4d7-IT%20%E1%80%A5%E1%80%95%E1%80%92%E1%80%B1.pdf' },
       { title: 'Commercial Tax Law', link: 'https://www.ird.gov.mm/storage/laws/672338de2af53-CT%20%E1%80%A5%E1%80%95%E1%80%92%E1%80%B1.pdf' },
       { title: 'Stamp Duty Act', link: 'https://www.ird.gov.mm/storage/laws/673ab6b374b08-Myanmar_Stamp_Act_Update_0.pdf' },
-      { title: 'WHT Notification', link: '#' }
+      { title: 'WHT Notification', link: 'https://www.ird.gov.mm/storage/pamphlets/672342b45a0b3.WT.pdf' }
     ]
   },
   {
     category: 'CBM',
     icon: Landmark,
     items: [
-      { title: 'Foreign Exchange Management law', link: 'https://www.cbm.gov.mm/sites/default/files/law_0.pdf' },
-      { title: 'Export Income Remittance', link: '#' }
+      { title: 'Foreign Exchange Management law', link: 'https://www.cbm.gov.mm/sites/default/files/law_0.pdf' }
     ]
   },
   {

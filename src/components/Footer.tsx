@@ -24,7 +24,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           
           {/* Logo and Company Name */}
-          <div className="flex items-center gap-3 group">
+          <div className="flex flex-col sm:flex-row items-center gap-3 group text-center sm:text-left">
             <div className="relative h-10 w-10 bg-white/10 rounded-lg flex items-center justify-center p-1.5 shadow-sm border-[0.5px] border-white/20 transition-all duration-300 group-hover:bg-white/20 overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
               <img 
@@ -34,7 +34,7 @@ export default function Footer() {
                 referrerPolicy="no-referrer"
               />
             </div>
-            <span className="font-serif font-bold text-lg tracking-tight text-white">
+            <span className="font-serif font-bold text-base md:text-lg tracking-tight text-white">
               Matura YP Consulting & Audit Co., Ltd.
             </span>
           </div>

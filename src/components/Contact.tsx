@@ -104,7 +104,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-bold text-white mb-1 text-lg">Office Address</h4>
-                  <p className="text-gray-300">No. 447, 4th Floor, Lower Pazundaung<br />Road, Pazundaung Township</p>
+                  <p className="text-gray-300">No. 447, 4th Floor, Lower Pazundaung<br />Road, Pazundaung Township, Yangon, Myanmar.</p>
                 </div>
               </div>
 

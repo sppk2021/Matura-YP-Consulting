@@ -37,8 +37,8 @@ export default function Header() {
         : 'bg-brand-navy shadow-md py-3'
     }`}>
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <a href="#home" className="flex items-center gap-4 group">
-          <div className="relative h-16 w-16 bg-white/10 rounded-xl flex items-center justify-center p-1.5 shadow-sm border-[0.5px] border-brand-gold/20 transition-all duration-300 group-hover:border-brand-gold/40 overflow-hidden">
+        <a href="#home" className="flex items-center gap-3 sm:gap-4 group">
+          <div className="relative h-12 w-12 sm:h-16 sm:w-16 shrink-0 bg-white/10 rounded-xl flex items-center justify-center p-1.5 shadow-sm border-[0.5px] border-brand-gold/20 transition-all duration-300 group-hover:border-brand-gold/40 overflow-hidden">
             {/* Subtle Highlight */}
             <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <img 
@@ -48,7 +48,7 @@ export default function Header() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <span className="font-serif font-bold text-xl md:text-2xl text-white tracking-tight">
+          <span className="font-serif font-bold text-sm sm:text-xl md:text-2xl text-white tracking-tight max-w-[180px] sm:max-w-none leading-tight">
             Matura YP Consulting & Audit Co., Ltd.
           </span>
         </a>

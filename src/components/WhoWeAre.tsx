@@ -37,18 +37,18 @@ export default function WhoWeAre() {
     {
       name: 'Ms. Naw Phyo Cherry Boy',
       role: 'Director',
-      qualifications: 'CPA (B.Act, C.P.A, Dip. IFRs)',
+      qualifications: 'B.Act, CPA, Dip. IFRS, ASEAN Chartered Professional Accountant (ASEAN CPA)',
       experience: '15+ years of experience with international companies, serving clients across Singapore, Malaysia, and Thailand.',
       expertise: 'Auditing, accounting, taxation, business advisory, company incorporation, labour management, productivity systems. Insolvency Practitioner guiding foreign companies on compliance & restructuring.',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600'
+      image: 'https://uploads.onecompiler.io/442aqr2uj/44fxkmwcg/founder%201.jpg'
     },
     {
       name: 'Ms. Yin Yin Min',
       role: 'Director',
-      qualifications: 'CPA, B.Com, C.P.A, Dip. IFRs, Dip. F.M, D.A, D.B.L',
+      qualifications: 'B.Com, CPA, Dip.IFRs, Dip.FM, DA, DBL, ASEAN Chartered Professional Accountant (ASEAN CPA)',
       experience: '20+ years experience in company law, legal compliance, auditing, and regulatory requirements.',
       expertise: 'Business advisory, accounting, taxation, and labour management. Helps companies operate efficiently and stay compliant. Insolvency Practitioner guiding foreign companies on compliance & restructuring.',
-      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=600'
+      image: 'https://uploads.onecompiler.io/442aqr2uj/44fxkmwcg/Founder%202.png'
     }
   ];
 
@@ -100,7 +100,7 @@ export default function WhoWeAre() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-12">
             {directors.map((director, index) => (
               <motion.div
                 key={director.name}
@@ -108,19 +108,19 @@ export default function WhoWeAre() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.2 }}
-                className="bg-white/5 p-8 rounded-sm border border-white/10 hover:border-brand-gold/30 transition-colors"
+                className="bg-white/5 p-6 md:p-8 rounded-sm border border-white/10 hover:border-brand-gold/30 transition-colors"
               >
-                <div className="flex flex-col md:flex-row gap-8">
-                  <div className="md:w-1/3">
+                <div className="flex flex-col sm:flex-row gap-6 md:gap-8">
+                  <div className="sm:w-1/3 shrink-0">
                     <img 
                       src={director.image} 
                       alt={director.name} 
-                      className="w-full aspect-[3/4] object-cover rounded-sm grayscale hover:grayscale-0 transition-all duration-500"
+                      className="w-full max-w-[240px] mx-auto sm:max-w-none aspect-[3/4] object-cover rounded-sm"
                       referrerPolicy="no-referrer"
                       loading="lazy"
                     />
                   </div>
-                  <div className="md:w-2/3">
+                  <div className="sm:w-2/3">
                     <h3 className="text-2xl font-bold text-brand-gold mb-1">{director.name}</h3>
                     <p className="text-white font-medium mb-1">{director.role}</p>
                     <p className="text-gray-400 text-sm mb-4 italic">{director.qualifications}</p>

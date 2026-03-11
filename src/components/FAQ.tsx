@@ -312,7 +312,7 @@ export default function FAQ() {
 
             <div className="mt-12 pt-8 border-t border-white/10">
               <p className="text-sm text-gray-400 italic">
-                <span className="text-brand-gold font-bold">Disclaimer:</span> Content in this FAQ section is sourced from the DICA official website (www.dica.gov.mm).
+                <span className="text-brand-gold font-bold">Disclaimer:</span> Content in this section is sourced from various official government websites and public resources.
               </p>
             </div>
           </div>

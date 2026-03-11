@@ -37,15 +37,15 @@ export default function Hero() {
             className="lg:col-span-7"
           >
             <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-2 block">
-              Local Insight. International Standard.
+              Simple Values, Global Vision
             </span>
             <div className="w-20 h-px bg-brand-gold/40 mb-4"></div>
             <p className="text-brand-gold font-serif italic text-lg mb-8">
-              "Your success is our priority."
+              Clients' Success is Our Success
             </p>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl text-white font-bold leading-tight mb-6">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl text-white font-bold leading-tight mb-6">
               Welcome to <br />
-              <span className="text-brand-gold italic text-4xl md:text-5xl lg:text-6xl">Matura YP Consulting & Audit Co., Ltd.</span>
+              <span className="text-brand-gold italic text-3xl md:text-5xl lg:text-6xl">Matura YP Consulting & Audit Co., Ltd.</span>
             </h1>
             <p className="text-gray-300 text-lg md:text-xl mb-10 leading-relaxed max-w-2xl">
               At Matura YP Consulting & Audit Co., Ltd., we are backed by a team of experienced professionals 
@@ -94,8 +94,8 @@ export default function Hero() {
                       <Target className="text-brand-gold w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-lg">Our Mission</h4>
-                      <p className="text-sm text-gray-300 mt-1">To deliver precision and clarity in every financial report, empowering our clients.</p>
+                      <h4 className="font-bold text-white text-lg">Commitment to clients</h4>
+                      <p className="text-sm text-gray-300 mt-1">At Matura YP, we don't just provide services— we build partnerships. Every client receives honest, reliable, and tailored solutions guided by transparency, professional ethics, and a genuine commitment to your sustainable growth.</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -103,8 +103,8 @@ export default function Hero() {
                       <Eye className="text-brand-gold w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-lg">Our Vision</h4>
-                      <p className="text-sm text-gray-300 mt-1">To be the most trusted partner in financial consulting globally.</p>
+                      <h4 className="font-bold text-white text-lg">Vision</h4>
+                      <p className="text-sm text-gray-300 mt-1">To become a trusted international consulting and audit firm—empowering businesses through integrity, innovation, and strategic insight. We create lasting value for clients and communities across borders.</p>
                     </div>
                   </div>
                 </div>

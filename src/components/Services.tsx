@@ -37,13 +37,13 @@ const services = [
     title: 'Tax Related Services',
     icon: Landmark,
     description: 'Strategic tax planning and compliance to minimize liabilities. Comprehensive support for all tax types in Myanmar.',
-    details: ['Corporate & Personal Income Tax', 'Withholding & Commercial Tax', 'Stamp Duty & Capital Gain Tax', 'Tax Registration & Structuring']
+    details: ['Corporate Income Tax', 'Commercial Tax', 'Personal Income Tax', 'Capital Gain Tax', 'Withholding Tax', 'Stamp Duty', 'Tax Registration & Structuring']
   },
   {
     title: 'Payroll Services',
     icon: Calculator,
     description: 'End-to-end payroll management ensuring accuracy, confidentiality, and compliance with local regulations.',
-    details: ['Salary & Benefit Calculation', 'SSB & PIT Management', 'Payslip Preparation', 'Monthly PAYE Reporting']
+    details: ['Salary & Benefit Calculation', 'SSB & PIT Management', 'Payslip Preparation', 'Monthly and Yearly PIT Reporting']
   },
   {
     title: 'Financial Audit',
@@ -184,29 +184,29 @@ export default function Services() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-brand-navy border border-white/20 rounded-sm shadow-2xl z-50 overflow-hidden"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-2xl bg-brand-navy border border-white/20 rounded-sm shadow-2xl z-50 max-h-[90vh] overflow-y-auto"
               role="dialog"
               aria-modal="true"
               aria-labelledby="modal-title"
             >
-              <div className="p-8 md:p-12">
+              <div className="p-6 md:p-12">
                 <button
                   onClick={() => setSelectedService(null)}
-                  className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 text-gray-400 hover:text-white transition-colors bg-brand-navy/80 p-1 rounded-full z-10"
                   aria-label="Close modal"
                 >
                   <X className="w-6 h-6" />
                 </button>
 
-                <div className="w-16 h-16 bg-white/10 flex items-center justify-center rounded-sm mb-8">
-                  <selectedService.icon className="text-brand-gold w-8 h-8" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-white/10 flex items-center justify-center rounded-sm mb-6 md:mb-8 mt-2 md:mt-0">
+                  <selectedService.icon className="text-brand-gold w-6 h-6 md:w-8 md:h-8" />
                 </div>
 
-                <h3 id="modal-title" className="text-3xl font-bold text-white mb-4">
+                <h3 id="modal-title" className="text-2xl md:text-3xl font-bold text-white mb-4">
                   {selectedService.title}
                 </h3>
                 
-                <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+                <p className="text-gray-300 text-base md:text-lg mb-6 md:mb-8 leading-relaxed">
                   {selectedService.description}
                 </p>
 
