@@ -140,7 +140,7 @@ export default React.memo(function Publication() {
                 
                 <ul className="space-y-4 flex-grow">
                   {cat.items.map((item: any) => (
-                    <li key={item.title} className="flex items-start gap-3 group">
+                    <li key={`${cat.category}-${item.title}`} className="flex items-start gap-3 group">
                       <FileText className="w-4 h-4 text-brand-gold/70 mt-1 flex-shrink-0 group-hover:text-brand-gold transition-colors" />
                       <a 
                         href={item.link} 

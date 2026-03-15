@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Save, RefreshCw, ExternalLink, Plus, Sparkles, Trash2, Lock, User, ShieldCheck, LogIn, Edit2, X, Scale, Search, ChevronLeft, ChevronRight, CheckCircle2, Circle, Settings } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, RecaptchaVerifier } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../firebase';
 
 export default function Dashboard() {
@@ -118,14 +118,14 @@ export default function Dashboard() {
     }
 
     // Load Publications
-    let unsubscribePubs = () => {};
     if (isAdmin) {
-      const pubQuery = query(collection(db, 'publications'), orderBy('createdAt', 'desc'));
-      unsubscribePubs = onSnapshot(pubQuery, (snapshot) => {
+      getDocs(collection(db, 'publications')).then((snapshot) => {
         const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setPublications(pubs);
-      }, (err) => {
+      }).catch((err) => {
         console.error("Error loading publications:", err);
+        console.error("Error code:", err.code);
+        console.error("Error message:", err.message);
       });
     }
 
@@ -140,7 +140,6 @@ export default function Dashboard() {
     return () => {
       unsubscribePosts();
       unsubscribeAdmins();
-      unsubscribePubs();
       unsubscribeCats();
     };
   }, [isLoggedIn, isAdmin]);
@@ -563,9 +562,13 @@ export default function Dashboard() {
       <div className="min-h-screen bg-brand-navy flex items-center justify-center p-6">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl backdrop-blur-sm">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-brand-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ShieldCheck className="w-8 h-8 text-brand-gold" />
-            </div>
+            <img 
+              src="https://uploads.onecompiler.io/43924vdyc/44ftcb7wt/logo%202.png" 
+              alt="Matura YP Consulting & Audit Logo" 
+              className="w-20 h-20 mx-auto mb-4 object-contain" 
+              referrerPolicy="no-referrer" 
+            />
+            <h2 className="text-lg font-bold text-brand-gold mb-1">Matura YP Consulting & Audit</h2>
             <h1 className="text-2xl font-bold text-white font-serif">Admin Sign In</h1>
             <p className="text-gray-400 text-sm mt-2">Sign in to access the dashboard.</p>
           </div>
