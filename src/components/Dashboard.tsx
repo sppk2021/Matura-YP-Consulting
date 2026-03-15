@@ -454,6 +454,43 @@ export default function Dashboard() {
     }
   };
 
+  const seedDefaultData = async () => {
+    if (!isAdmin) return;
+    if (!confirm('Are you sure you want to seed the default publications?')) return;
+    
+    const defaultPublications = [
+      {
+        category: 'Company Law',
+        items: [
+          { title: 'Myanmar Companies law', link: 'https://www.myco.dica.gov.mm/documentation/mm/MCL.en-US.pdf' },
+          { title: 'Foreign Investment Law', link: 'https://meriyadh.org/wp-content/uploads/2024/05/foreign-investment-law.pdf' },
+          { title: 'Director Guide', link: 'https://www.myco.dica.gov.mm/documentation/mm/DirectorGuide.en-US.pdf' },
+          { title: 'Special Economic Zone Law', link: 'https://myanmartradeportal.gov.mm/kcfinder/upload/files/myanmarspecialeconomiczone.pdf' }
+        ]
+      }
+    ];
+
+    try {
+      for (const cat of defaultPublications) {
+        for (const item of cat.items) {
+          await addDoc(collection(db, 'publications'), {
+            category: cat.category,
+            title: item.title,
+            link: item.link,
+            status: 'published',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        }
+      }
+      setPubSuccess('Default data seeded successfully!');
+      setTimeout(() => setPubSuccess(''), 3000);
+    } catch (err: any) {
+      console.error(err);
+      alert(`Failed to seed data: ${err.message}`);
+    }
+  };
+
   const handleRemoveAdmin = async (emailId: string) => {
     if (!isAdmin) {
       alert("You do not have permission to remove admins.");
@@ -866,6 +903,14 @@ export default function Dashboard() {
                   className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-gold transition-all"
                 />
               </div>
+              {publications.length === 0 && (
+                <button
+                  onClick={seedDefaultData}
+                  className="bg-brand-gold/10 text-brand-gold border border-brand-gold/20 px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-brand-gold/20 transition-colors"
+                >
+                  Seed Default Data
+                </button>
+              )}
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
