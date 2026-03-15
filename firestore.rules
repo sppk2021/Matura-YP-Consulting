@@ -88,6 +88,17 @@ service cloud.firestore {
              isValidString('createdAt', 1, 100);
     }
 
+    function isValidPublication() {
+      return request.resource.data.keys().hasAll(['category', 'title', 'link', 'status', 'createdAt', 'updatedAt']) &&
+             request.resource.data.keys().hasOnly(['category', 'title', 'link', 'status', 'createdAt', 'updatedAt']) &&
+             isValidString('category', 1, 100) &&
+             isValidString('title', 1, 500) &&
+             isValidUrl(request.resource.data.link) &&
+             (request.resource.data.status == 'published' || request.resource.data.status == 'draft') &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.updatedAt is timestamp;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -95,6 +106,10 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if isAdmin() && isValidSettings();
       allow delete: if isAdmin();
+    }
+
+    match /publications/{pubId} {
+      allow read, write: if isAdmin();
     }
 
     match /customPosts/{postId} {
