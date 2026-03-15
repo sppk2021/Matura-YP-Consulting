@@ -118,13 +118,16 @@ export default function Dashboard() {
     }
 
     // Load Publications
-    const pubQuery = query(collection(db, 'publications'), orderBy('createdAt', 'desc'));
-    const unsubscribePubs = onSnapshot(pubQuery, (snapshot) => {
-      const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setPublications(pubs);
-    }, (err) => {
-      console.error("Error loading publications:", err);
-    });
+    let unsubscribePubs = () => {};
+    if (isAdmin) {
+      const pubQuery = query(collection(db, 'publications'), orderBy('createdAt', 'desc'));
+      unsubscribePubs = onSnapshot(pubQuery, (snapshot) => {
+        const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPublications(pubs);
+      }, (err) => {
+        console.error("Error loading publications:", err);
+      });
+    }
 
     // Load Categories
     const catDocRef = doc(db, 'settings', 'categories');
@@ -456,7 +459,7 @@ export default function Dashboard() {
 
   const seedDefaultData = async () => {
     if (!isAdmin) return;
-    if (!confirm('Are you sure you want to seed the default publications?')) return;
+    if (!confirm('Are you sure you want to seed the default publications? This will add them to your existing list.')) return;
     
     const defaultPublications = [
       {
@@ -942,14 +945,12 @@ export default function Dashboard() {
                   className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-gold transition-all"
                 />
               </div>
-              {publications.length === 0 && (
-                <button
-                  onClick={seedDefaultData}
-                  className="bg-brand-gold/10 text-brand-gold border border-brand-gold/20 px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-brand-gold/20 transition-colors"
-                >
-                  Seed Default Data
-                </button>
-              )}
+              <button
+                onClick={seedDefaultData}
+                className="bg-brand-gold/10 text-brand-gold border border-brand-gold/20 px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-brand-gold/20 transition-colors"
+              >
+                Refresh/Seed Default Data
+              </button>
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
