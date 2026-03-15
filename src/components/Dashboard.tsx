@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Save, RefreshCw, ExternalLink, Plus, Sparkles, Trash2, Lock, User, ShieldCheck, LogIn, Edit2, X, Scale } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, ExternalLink, Plus, Sparkles, Trash2, Lock, User, ShieldCheck, LogIn, Edit2, X, Scale, Search, ChevronLeft, ChevronRight, CheckCircle2, Circle, Settings } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, RecaptchaVerifier } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../firebase';
 
 export default function Dashboard() {
@@ -47,8 +47,18 @@ export default function Dashboard() {
   const [newPubCategory, setNewPubCategory] = useState('');
   const [newPubTitle, setNewPubTitle] = useState('');
   const [newPubLink, setNewPubLink] = useState('');
+  const [newPubStatus, setNewPubStatus] = useState<'published' | 'draft'>('published');
   const [isPubSaving, setIsPubSaving] = useState(false);
   const [editingPub, setEditingPub] = useState<any | null>(null);
+  const [pubSearch, setPubSearch] = useState('');
+  const [pubPage, setPubPage] = useState(1);
+  const [pubSuccess, setPubSuccess] = useState('');
+
+  // Category Management State
+  const [categories, setCategories] = useState<string[]>(['Company Law', 'Tax Law', 'CBM', 'MOC', 'Labor', 'Other']);
+  const [showCatManager, setShowCatManager] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<{old: string, new: string} | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -108,7 +118,7 @@ export default function Dashboard() {
     }
 
     // Load Publications
-    const pubQuery = query(collection(db, 'publications'), orderBy('category', 'asc'));
+    const pubQuery = query(collection(db, 'publications'), orderBy('createdAt', 'desc'));
     const unsubscribePubs = onSnapshot(pubQuery, (snapshot) => {
       const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPublications(pubs);
@@ -116,10 +126,19 @@ export default function Dashboard() {
       console.error("Error loading publications:", err);
     });
 
+    // Load Categories
+    const catDocRef = doc(db, 'settings', 'categories');
+    const unsubscribeCats = onSnapshot(catDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setCategories(docSnap.data().list || []);
+      }
+    });
+
     return () => {
       unsubscribePosts();
       unsubscribeAdmins();
       unsubscribePubs();
+      unsubscribeCats();
     };
   }, [isLoggedIn, isAdmin]);
 
@@ -220,15 +239,15 @@ export default function Dashboard() {
       alert("You do not have permission to save posts.");
       return;
     }
-    if (!newPostLink || !selectedTitle) return;
+    if (!newPostLink || !newPostTopic) return;
     
     const newPost = {
-      title: selectedTitle,
+      title: newPostTopic, // Use manual title input
       link: newPostLink,
       pubDate: new Date().toISOString(),
-      description: newPostTopic,
+      description: '',
       thumbnail: 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?auto=format&fit=crop&q=80&w=800', // Default thumbnail
-      createdAt: new Date().toISOString()
+      createdAt: serverTimestamp()
     };
 
     try {
@@ -236,8 +255,6 @@ export default function Dashboard() {
       // Reset form
       setNewPostLink('');
       setNewPostTopic('');
-      setSuggestedTitles([]);
-      setSelectedTitle('');
     } catch (err: any) {
       console.error(err);
       alert(`Failed to save post: ${err.message || 'Check permissions.'}`);
@@ -362,20 +379,28 @@ export default function Dashboard() {
         await updateDoc(doc(db, 'publications', editingPub.id), {
           category: newPubCategory,
           title: newPubTitle,
-          link: newPubLink
+          link: newPubLink,
+          status: newPubStatus,
+          updatedAt: serverTimestamp()
         });
+        setPubSuccess('Publication updated successfully');
         setEditingPub(null);
       } else {
         await addDoc(collection(db, 'publications'), {
           category: newPubCategory,
           title: newPubTitle,
           link: newPubLink,
-          createdAt: new Date().toISOString()
+          status: newPubStatus,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
         });
+        setPubSuccess('Publication added successfully');
       }
       setNewPubCategory('');
       setNewPubTitle('');
       setNewPubLink('');
+      setNewPubStatus('published');
+      setTimeout(() => setPubSuccess(''), 3000);
     } catch (err: any) {
       console.error(err);
       alert(`Failed to save publication: ${err.message}`);
@@ -384,11 +409,45 @@ export default function Dashboard() {
     }
   };
 
+  const handleAddCategory = async () => {
+    if (!newCategoryName || !isAdmin) return;
+    const updated = [...categories, newCategoryName];
+    try {
+      await setDoc(doc(db, 'settings', 'categories'), { list: updated });
+      setNewCategoryName('');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteCategory = async (cat: string) => {
+    if (!isAdmin || !confirm(`Are you sure you want to delete the category "${cat}"?`)) return;
+    const updated = categories.filter(c => c !== cat);
+    try {
+      await setDoc(doc(db, 'settings', 'categories'), { list: updated });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory || !isAdmin) return;
+    const updated = categories.map(c => c === editingCategory.old ? editingCategory.new : c);
+    try {
+      await setDoc(doc(db, 'settings', 'categories'), { list: updated });
+      setEditingCategory(null);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleDeletePublication = async (id: string) => {
     if (!isAdmin) return;
     if (!confirm('Are you sure you want to delete this publication?')) return;
     try {
       await deleteDoc(doc(db, 'publications', id));
+      setPubSuccess('Publication deleted successfully');
+      setTimeout(() => setPubSuccess(''), 3000);
     } catch (err) {
       console.error(err);
       alert('Failed to delete publication.');
@@ -566,14 +625,14 @@ export default function Dashboard() {
         )}
         
         <div className="grid lg:grid-cols-1 gap-8 mb-8">
-          {/* Section 1: Curate Custom Posts with AI */}
+          {/* Section 1: Curate Custom Posts */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg flex flex-col">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brand-gold" />
+              <Plus className="w-5 h-5 text-brand-gold" />
               Curate Custom Post
             </h2>
             <p className="text-gray-300 text-sm mb-6 leading-relaxed">
-              Add a specific Medium post link and use AI to suggest the best title for your audience.
+              Add a specific Medium post link and enter the title manually.
             </p>
             
             <div className="space-y-4 flex-grow">
@@ -589,100 +648,122 @@ export default function Dashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">Topic / Draft Title</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Post Title</label>
                 <input
                   type="text"
                   value={newPostTopic}
                   onChange={(e) => setNewPostTopic(e.target.value)}
-                  placeholder="e.g., How to do financial audits"
+                  placeholder="Enter the title manually"
                   disabled={!isAdmin}
                   className="w-full bg-brand-navy/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold focus:ring-1 transition-all disabled:opacity-50"
                 />
               </div>
 
-              {suggestedTitles.length === 0 ? (
-                <button
-                  onClick={handleSuggestTitles}
-                  disabled={suggesting || !newPostLink || !newPostTopic || !isAdmin}
-                  className="w-full border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-brand-navy transition-colors py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  {suggesting ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                  Suggest Best Titles
-                </button>
-              ) : (
-                <div className="bg-brand-navy/50 p-4 rounded-lg border border-white/10 space-y-3">
-                  <p className="text-sm text-gray-300 font-medium mb-2">Select the best title:</p>
-                  {suggestedTitles.map((title, idx) => (
-                    <label key={idx} className="flex items-start gap-3 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name="suggestedTitle" 
-                        value={title}
-                        checked={selectedTitle === title}
-                        onChange={() => setSelectedTitle(title)}
-                        className="mt-1 text-brand-gold focus:ring-brand-gold bg-brand-navy border-white/20"
-                      />
-                      <span className={`text-sm ${selectedTitle === title ? 'text-white font-medium' : 'text-gray-400 group-hover:text-gray-300'}`}>
-                        {title}
-                      </span>
-                    </label>
-                  ))}
-                  
-                  <div className="pt-2 border-t border-white/10 mt-2">
-                    <label className="block text-xs font-medium text-gray-400 mb-1.5">Or enter a custom title:</label>
-                    <input
-                      type="text"
-                      value={selectedTitle}
-                      onChange={(e) => setSelectedTitle(e.target.value)}
-                      placeholder="Type your own title here..."
-                      className="w-full bg-brand-navy border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold focus:ring-1 transition-all"
-                    />
-                  </div>
-
-                  <button
-                    onClick={handleSaveCustomPost}
-                    disabled={!selectedTitle || !isAdmin}
-                    className="btn-primary w-full py-2 mt-4 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
-                  >
-                    <Plus className="w-4 h-4" /> Add to Website
-                  </button>
-                </div>
-              )}
+              <button
+                onClick={handleSaveCustomPost}
+                disabled={!newPostLink || !newPostTopic || !isAdmin}
+                className="btn-primary w-full py-3 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" /> Add to Website
+              </button>
             </div>
           </div>
 
           {/* Section 2: Publications & Laws */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Scale className="w-5 h-5 text-brand-gold" />
-              Publications & Laws
-            </h2>
-            <p className="text-gray-300 text-sm mb-6 leading-relaxed">
-              Manage the legal documents and resources shown on the website.
-            </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-brand-gold" />
+                  Publications & Laws
+                </h2>
+                <p className="text-gray-300 text-sm mt-1 leading-relaxed">
+                  Manage the legal documents and resources shown on the website.
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowCatManager(!showCatManager)}
+                className="flex items-center gap-2 text-xs font-medium text-brand-gold hover:text-white transition-colors bg-white/5 px-3 py-2 rounded-lg border border-white/10"
+              >
+                <Settings className="w-4 h-4" />
+                Manage Categories
+              </button>
+            </div>
 
-            <form onSubmit={handleSavePublication} className="space-y-4 mb-8 bg-brand-navy/30 p-4 rounded-lg border border-white/5">
-              <div className="grid sm:grid-cols-2 gap-4">
+            {showCatManager && (
+              <div className="mb-8 p-6 bg-brand-navy/50 border border-brand-gold/20 rounded-xl animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-brand-gold uppercase tracking-wider">Category Management</h3>
+                  <button onClick={() => setShowCatManager(false)} className="text-gray-500 hover:text-white">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="flex gap-2 mb-6">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="New category name..."
+                    className="flex-grow bg-brand-navy border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
+                  />
+                  <button
+                    onClick={handleAddCategory}
+                    disabled={!newCategoryName}
+                    className="bg-brand-gold text-brand-navy px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-500 transition-colors disabled:opacity-50"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {categories.map((cat) => (
+                    <div key={cat} className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/5">
+                      {editingCategory?.old === cat ? (
+                        <div className="flex gap-1 w-full">
+                          <input
+                            type="text"
+                            value={editingCategory.new}
+                            onChange={(e) => setEditingCategory({...editingCategory, new: e.target.value})}
+                            className="w-full bg-brand-navy border border-brand-gold/50 rounded px-2 py-1 text-xs"
+                          />
+                          <button onClick={handleUpdateCategory} className="text-green-400"><Save className="w-3 h-3" /></button>
+                          <button onClick={() => setEditingCategory(null)} className="text-red-400"><X className="w-3 h-3" /></button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="text-xs text-gray-300 truncate mr-2">{cat}</span>
+                          <div className="flex gap-1">
+                            <button onClick={() => setEditingCategory({old: cat, new: cat})} className="text-gray-500 hover:text-blue-400"><Edit2 className="w-3 h-3" /></button>
+                            <button onClick={() => handleDeleteCategory(cat)} className="text-gray-500 hover:text-red-400"><Trash2 className="w-3 h-3" /></button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSavePublication} className="space-y-4 mb-8 bg-brand-navy/30 p-6 rounded-xl border border-white/5 shadow-inner">
+              <div className="grid sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Category</label>
+                  <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Category</label>
                   <select
                     value={newPubCategory}
                     onChange={(e) => setNewPubCategory(e.target.value)}
                     required
                     disabled={!isAdmin}
-                    className="w-full bg-brand-navy border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold transition-all"
+                    className="w-full bg-brand-navy border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-gold transition-all"
                   >
                     <option value="">Select Category</option>
-                    <option value="Company Law">Company Law</option>
-                    <option value="Tax Law">Tax Law</option>
-                    <option value="CBM">CBM</option>
-                    <option value="MOC">MOC</option>
-                    <option value="Labor">Labor</option>
-                    <option value="Other">Other</option>
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Document Title</label>
+                  <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Document Title</label>
                   <input
                     type="text"
                     value={newPubTitle}
@@ -690,29 +771,64 @@ export default function Dashboard() {
                     placeholder="e.g., Myanmar Companies Law"
                     required
                     disabled={!isAdmin}
-                    className="w-full bg-brand-navy border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-all"
+                    className="w-full bg-brand-navy border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-all"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Link URL (PDF or Website)</label>
-                <input
-                  type="url"
-                  value={newPubLink}
-                  onChange={(e) => setNewPubLink(e.target.value)}
-                  placeholder="https://..."
-                  required
-                  disabled={!isAdmin}
-                  className="w-full bg-brand-navy border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-all"
-                />
+              
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Link URL (PDF or Website)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={newPubLink}
+                      onChange={(e) => setNewPubLink(e.target.value)}
+                      placeholder="https://..."
+                      required
+                      disabled={!isAdmin}
+                      className="w-full bg-brand-navy border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-all"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Status</label>
+                  <div className="flex gap-4 p-3 bg-brand-navy border border-white/10 rounded-lg">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="radio" 
+                        name="pubStatus" 
+                        value="published" 
+                        checked={newPubStatus === 'published'} 
+                        onChange={() => setNewPubStatus('published')}
+                        className="hidden"
+                      />
+                      {newPubStatus === 'published' ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Circle className="w-5 h-5 text-gray-600 group-hover:text-gray-400" />}
+                      <span className={`text-sm ${newPubStatus === 'published' ? 'text-white font-medium' : 'text-gray-500'}`}>Published</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="radio" 
+                        name="pubStatus" 
+                        value="draft" 
+                        checked={newPubStatus === 'draft'} 
+                        onChange={() => setNewPubStatus('draft')}
+                        className="hidden"
+                      />
+                      {newPubStatus === 'draft' ? <CheckCircle2 className="w-5 h-5 text-yellow-400" /> : <Circle className="w-5 h-5 text-gray-600 group-hover:text-gray-400" />}
+                      <span className={`text-sm ${newPubStatus === 'draft' ? 'text-white font-medium' : 'text-gray-500'}`}>Draft</span>
+                    </label>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
+
+              <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={isPubSaving || !isAdmin}
-                  className="btn-primary flex-grow py-2 text-sm flex items-center justify-center gap-2"
+                  className="btn-primary flex-grow py-3 text-sm font-bold flex items-center justify-center gap-2"
                 >
-                  {isPubSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : (editingPub ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />)}
+                  {isPubSaving ? <RefreshCw className="w-5 h-5 animate-spin" /> : (editingPub ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />)}
                   {editingPub ? 'Update Publication' : 'Add Publication'}
                 </button>
                 {editingPub && (
@@ -723,50 +839,165 @@ export default function Dashboard() {
                       setNewPubCategory('');
                       setNewPubTitle('');
                       setNewPubLink('');
+                      setNewPubStatus('published');
                     }}
-                    className="px-4 py-2 border border-white/10 rounded-lg text-sm hover:bg-white/5 transition-colors"
+                    className="px-6 py-3 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
                   >
                     Cancel
                   </button>
                 )}
               </div>
-            </form>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-              {publications.map((pub) => (
-                <div key={pub.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 group">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">{pub.category}</span>
-                    <span className="text-sm font-medium text-white">{pub.title}</span>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => {
-                        setEditingPub(pub);
-                        setNewPubCategory(pub.category);
-                        setNewPubTitle(pub.title);
-                        setNewPubLink(pub.link);
-                      }}
-                      className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded transition-colors"
-                      title="Edit"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeletePublication(pub.id)}
-                      className="p-1.5 text-red-400 hover:bg-red-400/10 rounded transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {publications.length === 0 && (
-                <div className="text-center py-8 text-gray-500 text-sm italic">
-                  No publications added yet.
+              
+              {pubSuccess && (
+                <div className="p-3 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm text-center animate-in fade-in zoom-in-95 duration-300">
+                  {pubSuccess}
                 </div>
               )}
+            </form>
+
+            <div className="mb-6 flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  value={pubSearch}
+                  onChange={(e) => { setPubSearch(e.target.value); setPubPage(1); }}
+                  placeholder="Search by title or category..."
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-gold transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-white/5 text-gray-400 uppercase text-[10px] tracking-widest font-bold">
+                    <tr>
+                      <th className="px-6 py-4">Category</th>
+                      <th className="px-6 py-4">Document Title</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4">Date</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {(() => {
+                      const filtered = publications.filter(p => 
+                        p.title.toLowerCase().includes(pubSearch.toLowerCase()) || 
+                        p.category.toLowerCase().includes(pubSearch.toLowerCase())
+                      );
+                      const itemsPerPage = 10;
+                      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                      const paginated = filtered.slice((pubPage - 1) * itemsPerPage, pubPage * itemsPerPage);
+
+                      return (
+                        <>
+                          {paginated.map((pub) => (
+                            <tr key={pub.id} className="hover:bg-white/5 transition-colors group">
+                              <td className="px-6 py-4">
+                                <span className="text-brand-gold font-medium">{pub.category}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex flex-col">
+                                  <span className="text-white font-medium">{pub.title}</span>
+                                  <a href={pub.link} target="_blank" rel="noreferrer" className="text-xs text-gray-500 hover:text-brand-gold truncate max-w-[200px]">{pub.link}</a>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${pub.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>
+                                  {pub.status || 'published'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-gray-500 text-xs">
+                                {pub.createdAt?.seconds ? new Date(pub.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setEditingPub(pub);
+                                      setNewPubCategory(pub.category);
+                                      setNewPubTitle(pub.title);
+                                      setNewPubLink(pub.link);
+                                      setNewPubStatus(pub.status || 'published');
+                                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                                    title="Edit"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeletePublication(pub.id)}
+                                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          {filtered.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">
+                                No publications found matching your search.
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination */}
+              {(() => {
+                const filtered = publications.filter(p => 
+                  p.title.toLowerCase().includes(pubSearch.toLowerCase()) || 
+                  p.category.toLowerCase().includes(pubSearch.toLowerCase())
+                );
+                const itemsPerPage = 10;
+                const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                
+                if (totalPages <= 1) return null;
+
+                return (
+                  <div className="px-6 py-4 bg-white/5 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-xs text-gray-500">
+                      Showing {(pubPage - 1) * itemsPerPage + 1} to {Math.min(pubPage * itemsPerPage, filtered.length)} of {filtered.length} records
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPubPage(p => Math.max(1, p - 1))}
+                        disabled={pubPage === 1}
+                        className="p-2 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                          <button
+                            key={page}
+                            onClick={() => setPubPage(page)}
+                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${pubPage === page ? 'bg-brand-gold text-brand-navy' : 'hover:bg-white/10 text-gray-400'}`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setPubPage(p => Math.min(totalPages, p + 1))}
+                        disabled={pubPage === totalPages}
+                        className="p-2 text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
