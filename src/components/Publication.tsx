@@ -79,9 +79,12 @@ export default React.memo(function Publication() {
     const q = query(collection(db, 'publications'), orderBy('category', 'asc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const pubsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const uniquePubs = pubsData.filter((pub, index, self) =>
+        index === self.findIndex((p) => p.category === pub.category && p.title === pub.title)
+      );
       
       // Group by category
-      const grouped = pubsData.reduce((acc: any[], curr: any) => {
+      const grouped = uniquePubs.reduce((acc: any[], curr: any) => {
         const existing = acc.find(a => a.category === curr.category);
         if (existing) {
           existing.items.push({ title: curr.title, link: curr.link });

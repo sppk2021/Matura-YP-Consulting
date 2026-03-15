@@ -460,6 +460,10 @@ export default function Dashboard() {
     if (!isAdmin) return;
     if (!confirm('Are you sure you want to seed the default publications? This will add them to your existing list.')) return;
     
+    // Fetch existing publications to check for duplicates
+    const snapshot = await getDocs(collection(db, 'publications'));
+    const existingPubs = snapshot.docs.map(doc => doc.data());
+
     const defaultPublications = [
       {
         category: 'Company Law',
@@ -510,21 +514,26 @@ export default function Dashboard() {
         ]
       }
     ];
-
+    
+    let addedCount = 0;
     try {
       for (const cat of defaultPublications) {
         for (const item of cat.items) {
-          await addDoc(collection(db, 'publications'), {
-            category: cat.category,
-            title: item.title,
-            link: item.link,
-            status: 'published',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
+          const exists = existingPubs.some(p => p.category === cat.category && p.title === item.title);
+          if (!exists) {
+            await addDoc(collection(db, 'publications'), {
+              category: cat.category,
+              title: item.title,
+              link: item.link,
+              status: 'published',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            addedCount++;
+          }
         }
       }
-      setPubSuccess('Default data seeded successfully!');
+      setPubSuccess(`Default data seeded successfully! ${addedCount} new publications added.`);
       setTimeout(() => setPubSuccess(''), 3000);
     } catch (err: any) {
       console.error(err);
