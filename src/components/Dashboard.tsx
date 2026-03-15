@@ -465,7 +465,46 @@ export default function Dashboard() {
           { title: 'Myanmar Companies law', link: 'https://www.myco.dica.gov.mm/documentation/mm/MCL.en-US.pdf' },
           { title: 'Foreign Investment Law', link: 'https://meriyadh.org/wp-content/uploads/2024/05/foreign-investment-law.pdf' },
           { title: 'Director Guide', link: 'https://www.myco.dica.gov.mm/documentation/mm/DirectorGuide.en-US.pdf' },
-          { title: 'Special Economic Zone Law', link: 'https://myanmartradeportal.gov.mm/kcfinder/upload/files/myanmarspecialeconomiczone.pdf' }
+          { title: 'Special Economic Zone Law', link: 'https://myanmartradeportal.gov.mm/kcfinder/upload/files/myanmarspecialeconomiczonelaw.pdf' }
+        ]
+      },
+      {
+        category: 'Tax Law',
+        items: [
+          { title: 'Union Taxation Law 2024', link: 'https://www.ird.gov.mm/storage/laws/6749808ac558b-Union_taxation_law_2024.pdf' },
+          { title: 'Union Taxation Law 2025', link: 'https://www.ird.gov.mm/storage/laws/68396e3861e76-Union%20taxation%20law%202025%20.pdf' },
+          { title: 'Tax Administration Law', link: 'https://www.ird.gov.mm/storage/laws/673ac30979f47-TAL%20Law.pdf' },
+          { title: 'Income Tax Law', link: 'https://www.ird.gov.mm/storage/laws/67233b988a4d7-IT%20%E1%80%A5%E1%80%95%E1%80%92%E1%80%B1.pdf' },
+          { title: 'Commercial Tax Law', link: 'https://www.ird.gov.mm/storage/laws/672338de2af53-CT%20%E1%80%A5%E1%80%95%E1%80%92%E1%80%B1.pdf' },
+          { title: 'Stamp Duty Act', link: 'https://www.ird.gov.mm/storage/laws/673ab6b374b08-Myanmar_Stamp_Act_Update_0.pdf' },
+          { title: 'WHT Notification', link: 'https://www.ird.gov.mm/storage/pamphlets/672342b45a0b3.WT.pdf' }
+        ]
+      },
+      {
+        category: 'CBM',
+        items: [
+          { title: 'Foreign Exchange Management law', link: 'https://www.cbm.gov.mm/sites/default/files/law_0.pdf' }
+        ]
+      },
+      {
+        category: 'MOC',
+        items: [
+          { title: 'MOC (wholesale and retail noti:)', link: 'https://www.myanmartradeportal.gov.mm/uploads/legals/2019/5/25-2018(Permitting%20the%20JV%20for%20Whole%20Sale%20and%20Retail).pdf' }
+        ]
+      },
+      {
+        category: 'Labor',
+        items: [
+          { title: 'SSB', link: 'https://myanmar.gov.mm/documents/20143/0/8.Social-Security-Law-2012.pdf/dca488e3-d436-2af7-2b8c-eb200efcfbc9?t=1676884635030' },
+          { title: 'labor law', link: 'https://www.mol.gov.mm/laws-and-regulations/' },
+          { title: 'Minimum wages law', link: 'https://www.mol.gov.mm/wp-content/uploads/2014/05/4.Minimum-Wages-Law-2013-.pdf' },
+          { title: 'Factory Act', link: 'https://www.burmalibrary.org/sites/burmalibrary.org/files/obl/docs19/1951-Factories_Act-bu.pdf' }
+        ]
+      },
+      {
+        category: 'Other',
+        items: [
+          { title: 'Myanmar Calendar', link: 'https://myanmarcalendar.com/' }
         ]
       }
     ];
