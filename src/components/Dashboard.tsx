@@ -38,8 +38,17 @@ export default function Dashboard() {
   // Admin Management State
   const [allowedAdmins, setAllowedAdmins] = useState<any[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
   const [adminError, setAdminError] = useState('');
   const [adminSuccess, setAdminSuccess] = useState('');
+
+  // Publications State
+  const [publications, setPublications] = useState<any[]>([]);
+  const [newPubCategory, setNewPubCategory] = useState('');
+  const [newPubTitle, setNewPubTitle] = useState('');
+  const [newPubLink, setNewPubLink] = useState('');
+  const [isPubSaving, setIsPubSaving] = useState(false);
+  const [editingPub, setEditingPub] = useState<any | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -98,9 +107,19 @@ export default function Dashboard() {
       });
     }
 
+    // Load Publications
+    const pubQuery = query(collection(db, 'publications'), orderBy('category', 'asc'));
+    const unsubscribePubs = onSnapshot(pubQuery, (snapshot) => {
+      const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPublications(pubs);
+    }, (err) => {
+      console.error("Error loading publications:", err);
+    });
+
     return () => {
       unsubscribePosts();
       unsubscribeAdmins();
+      unsubscribePubs();
     };
   }, [isLoggedIn, isAdmin]);
 
@@ -287,23 +306,92 @@ export default function Dashboard() {
       setAdminError("You do not have permission to add admins.");
       return;
     }
-    if (!newAdminEmail) return;
+    if (!newAdminEmail || !newAdminPassword) {
+      setAdminError("Email and password are required.");
+      return;
+    }
     
     setAdminError('');
     setAdminSuccess('');
+    setIsLoggingIn(true);
     
     try {
+      // 1. Create user in Firebase Auth via our backend
+      const response = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: newAdminEmail.toLowerCase(), 
+          password: newAdminPassword,
+          adminUid: auth.currentUser?.uid // For verification on backend
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create user in Firebase Auth.');
+      }
+
+      // 2. Add to allowedAdmins collection
       await setDoc(doc(db, 'allowedAdmins', newAdminEmail.toLowerCase()), {
         email: newAdminEmail.toLowerCase(),
         role: 'admin',
         createdAt: new Date().toISOString()
       });
+
       setNewAdminEmail('');
-      setAdminSuccess('Admin added successfully.');
-      setTimeout(() => setAdminSuccess(''), 3000);
+      setNewAdminPassword('');
+      setAdminSuccess('Admin created and added successfully.');
+      setTimeout(() => setAdminSuccess(''), 5000);
+    } catch (err: any) {
+      console.error(err);
+      setAdminError(err.message || 'Failed to add admin.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleSavePublication = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAdmin) return;
+    if (!newPubCategory || !newPubTitle || !newPubLink) return;
+
+    setIsPubSaving(true);
+    try {
+      if (editingPub) {
+        await updateDoc(doc(db, 'publications', editingPub.id), {
+          category: newPubCategory,
+          title: newPubTitle,
+          link: newPubLink
+        });
+        setEditingPub(null);
+      } else {
+        await addDoc(collection(db, 'publications'), {
+          category: newPubCategory,
+          title: newPubTitle,
+          link: newPubLink,
+          createdAt: new Date().toISOString()
+        });
+      }
+      setNewPubCategory('');
+      setNewPubTitle('');
+      setNewPubLink('');
+    } catch (err: any) {
+      console.error(err);
+      alert(`Failed to save publication: ${err.message}`);
+    } finally {
+      setIsPubSaving(false);
+    }
+  };
+
+  const handleDeletePublication = async (id: string) => {
+    if (!isAdmin) return;
+    if (!confirm('Are you sure you want to delete this publication?')) return;
+    try {
+      await deleteDoc(doc(db, 'publications', id));
     } catch (err) {
       console.error(err);
-      setAdminError('Failed to add admin. Check permissions.');
+      alert('Failed to delete publication.');
     }
   };
 
@@ -562,6 +650,125 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+
+          {/* Section 2: Publications & Laws */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Scale className="w-5 h-5 text-brand-gold" />
+              Publications & Laws
+            </h2>
+            <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+              Manage the legal documents and resources shown on the website.
+            </p>
+
+            <form onSubmit={handleSavePublication} className="space-y-4 mb-8 bg-brand-navy/30 p-4 rounded-lg border border-white/5">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Category</label>
+                  <select
+                    value={newPubCategory}
+                    onChange={(e) => setNewPubCategory(e.target.value)}
+                    required
+                    disabled={!isAdmin}
+                    className="w-full bg-brand-navy border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold transition-all"
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Company Law">Company Law</option>
+                    <option value="Tax Law">Tax Law</option>
+                    <option value="CBM">CBM</option>
+                    <option value="MOC">MOC</option>
+                    <option value="Labor">Labor</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Document Title</label>
+                  <input
+                    type="text"
+                    value={newPubTitle}
+                    onChange={(e) => setNewPubTitle(e.target.value)}
+                    placeholder="e.g., Myanmar Companies Law"
+                    required
+                    disabled={!isAdmin}
+                    className="w-full bg-brand-navy border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">Link URL (PDF or Website)</label>
+                <input
+                  type="url"
+                  value={newPubLink}
+                  onChange={(e) => setNewPubLink(e.target.value)}
+                  placeholder="https://..."
+                  required
+                  disabled={!isAdmin}
+                  className="w-full bg-brand-navy border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold transition-all"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={isPubSaving || !isAdmin}
+                  className="btn-primary flex-grow py-2 text-sm flex items-center justify-center gap-2"
+                >
+                  {isPubSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : (editingPub ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />)}
+                  {editingPub ? 'Update Publication' : 'Add Publication'}
+                </button>
+                {editingPub && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingPub(null);
+                      setNewPubCategory('');
+                      setNewPubTitle('');
+                      setNewPubLink('');
+                    }}
+                    className="px-4 py-2 border border-white/10 rounded-lg text-sm hover:bg-white/5 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+              {publications.map((pub) => (
+                <div key={pub.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 group">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">{pub.category}</span>
+                    <span className="text-sm font-medium text-white">{pub.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => {
+                        setEditingPub(pub);
+                        setNewPubCategory(pub.category);
+                        setNewPubTitle(pub.title);
+                        setNewPubLink(pub.link);
+                      }}
+                      className="p-1.5 text-blue-400 hover:bg-blue-400/10 rounded transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeletePublication(pub.id)}
+                      className="p-1.5 text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {publications.length === 0 && (
+                <div className="text-center py-8 text-gray-500 text-sm italic">
+                  No publications added yet.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Section 2: Admin Management */}
@@ -593,17 +800,28 @@ export default function Dashboard() {
                     value={newAdminEmail}
                     onChange={(e) => setNewAdminEmail(e.target.value)}
                     placeholder="colleague@example.com"
-                    disabled={!isAdmin}
+                    disabled={!isAdmin || isLoggingIn}
+                    className="w-full bg-brand-navy/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold focus:ring-1 transition-all disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Initial Password</label>
+                  <input
+                    type="password"
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)}
+                    placeholder="••••••••"
+                    disabled={!isAdmin || isLoggingIn}
                     className="w-full bg-brand-navy/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold focus:ring-1 transition-all disabled:opacity-50"
                   />
                 </div>
                 <button
                   type="submit"
-                  disabled={!newAdminEmail || !isAdmin}
+                  disabled={!newAdminEmail || !newAdminPassword || !isAdmin || isLoggingIn}
                   className="btn-primary flex items-center justify-center gap-2 w-full py-3 disabled:opacity-50"
                 >
-                  <Plus className="w-5 h-5" />
-                  Add Admin
+                  {isLoggingIn ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                  Create & Add Admin
                 </button>
               </form>
               {adminSuccess && (
