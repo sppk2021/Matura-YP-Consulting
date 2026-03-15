@@ -345,8 +345,26 @@ export default function Dashboard() {
           </div>
           
           {loginError && (
-            <div className="mb-5 p-3 bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-sm text-center">
-              {loginError}
+            <div className="mb-5 p-4 bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-sm">
+              <div className="flex items-start gap-3">
+                <X className="w-5 h-5 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold mb-1">Sign In Error</p>
+                  <p className="leading-relaxed">{loginError}</p>
+                  
+                  {loginError.includes('unauthorized-domain') && (
+                    <div className="mt-3 pt-3 border-t border-red-500/20">
+                      <p className="font-bold text-white mb-1">How to fix this:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-xs opacity-90">
+                        <li>Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline hover:text-white">Firebase Console</a></li>
+                        <li>Select your project</li>
+                        <li>Go to <strong>Authentication</strong> &gt; <strong>Settings</strong> &gt; <strong>Authorized domains</strong></li>
+                        <li>Click <strong>Add domain</strong> and add <code className="bg-black/20 px-1 rounded">maturayp.com</code></li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           
