@@ -32,7 +32,7 @@ const values = [
   }
 ];
 
-export default function WhoWeAre() {
+export default React.memo(function WhoWeAre() {
   const directors = [
     {
       name: 'Ms. Naw Phyo Cherry Boy',
@@ -144,4 +144,4 @@ export default function WhoWeAre() {
       </div>
     </section>
   );
-}
+});

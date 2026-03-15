@@ -8,7 +8,7 @@ import { Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 // a brief description, social media links, copyright info, and legal links.
 // ============================================================================
 
-export default function Footer() {
+export default React.memo(function Footer() {
   return (
     <footer className="bg-brand-navy text-white">
       {/* Wavy SVG Background */}
@@ -32,6 +32,7 @@ export default function Footer() {
                 alt="Company Logo" 
                 className="h-full w-full object-contain rounded-md relative z-10"
                 referrerPolicy="no-referrer"
+                loading="lazy"
               />
             </div>
             <span className="font-serif font-bold text-base md:text-lg tracking-tight text-white">
@@ -44,6 +45,7 @@ export default function Footer() {
             <a href="#home" className="hover:text-brand-gold transition-colors">Home</a>
             <a href="#about" className="hover:text-brand-gold transition-colors">About</a>
             <a href="#services" className="hover:text-brand-gold transition-colors">Services</a>
+            <a href="#blog" className="hover:text-brand-gold transition-colors">Process & Insights</a>
             <a href="#contact" className="hover:text-brand-gold transition-colors">Contact</a>
           </div>
 
@@ -71,4 +73,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
+});

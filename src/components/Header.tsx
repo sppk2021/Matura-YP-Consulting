@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Phone, Mail } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // ============================================================================
 // Header Component
@@ -10,12 +11,13 @@ import { Menu, X, Phone, Mail } from 'lucide-react';
 // ============================================================================
 
 const navItems = [
-  { name: 'Home', href: '#home' },
-  { name: 'Who We Are', href: '#about' },
-  { name: 'Services', href: '#services' },
-  { name: 'Publication', href: '#publication' },
-  { name: 'FAQs', href: '#faqs' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'Home', href: '#home', type: 'anchor' },
+  { name: 'Who We Are', href: '#about', type: 'anchor' },
+  { name: 'Services', href: '#services', type: 'anchor' },
+  { name: 'Publication', href: '#publication', type: 'anchor' },
+  { name: 'Process & Insights', href: '#blog', type: 'anchor' },
+  { name: 'FAQs', href: '#faqs', type: 'anchor' },
+  { name: 'Contact', href: '#contact', type: 'anchor' },
 ];
 
 export default function Header() {
@@ -46,6 +48,8 @@ export default function Header() {
               alt="Company Logo" 
               className="h-full w-full object-contain rounded-lg relative z-10"
               referrerPolicy="no-referrer"
+              fetchPriority="high"
+              loading="eager"
             />
           </div>
           <span className="font-serif font-bold text-sm sm:text-xl md:text-2xl text-white tracking-tight max-w-[180px] sm:max-w-none leading-tight">
@@ -56,17 +60,27 @@ export default function Header() {
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-8">
           {navItems.map((item) => (
-            <a 
-              key={item.name} 
-              href={item.href} 
-              className="nav-link text-gray-300 hover:text-white font-semibold"
-            >
-              {item.name}
-            </a>
+            item.type === 'link' ? (
+              <Link 
+                key={item.name} 
+                to={item.href} 
+                className="nav-link text-gray-300 hover:text-white font-semibold"
+              >
+                {item.name}
+              </Link>
+            ) : (
+              <a 
+                key={item.name} 
+                href={item.href} 
+                className="nav-link text-gray-300 hover:text-white font-semibold"
+              >
+                {item.name}
+              </a>
+            )
           ))}
           <a 
             href="#contact" 
-            className="btn-primary py-2 px-6 text-sm"
+            className="btn-primary py-2 px-6 text-sm animate-pulse-gold"
           >
             Send Inquiry
           </a>
@@ -91,14 +105,25 @@ export default function Header() {
       {isOpen && (
         <div className="lg:hidden absolute top-full left-0 w-full bg-brand-navy/95 backdrop-blur-xl shadow-xl py-6 px-6 flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 border-b border-white/10">
           {navItems.map((item) => (
-            <a 
-              key={item.name} 
-              href={item.href} 
-              className="text-gray-300 hover:text-white font-medium py-2 border-b border-white/10"
-              onClick={() => setIsOpen(false)}
-            >
-              {item.name}
-            </a>
+            item.type === 'link' ? (
+              <Link 
+                key={item.name} 
+                to={item.href} 
+                className="text-gray-300 hover:text-white font-medium py-2 border-b border-white/10"
+                onClick={() => setIsOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ) : (
+              <a 
+                key={item.name} 
+                href={item.href} 
+                className="text-gray-300 hover:text-white font-medium py-2 border-b border-white/10"
+                onClick={() => setIsOpen(false)}
+              >
+                {item.name}
+              </a>
+            )
           ))}
           <a 
             href="#contact" 

@@ -10,7 +10,7 @@ import { ArrowRight, Target, Eye } from 'lucide-react';
 // It uses framer-motion for entrance animations.
 // ============================================================================
 
-export default function Hero() {
+export default React.memo(function Hero() {
   return (
     <section id="home" className="relative min-h-[calc(100vh-72px)] flex items-center overflow-hidden py-20">
       {/* Background Image with Overlay */}
@@ -24,6 +24,26 @@ export default function Hero() {
           loading="eager"
         />
         <div className="absolute inset-0 bg-brand-navy/90 mix-blend-multiply"></div>
+      </div>
+
+      {/* Floating Decorative Elements */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          animate={{ 
+            y: [0, -20, 0],
+            rotate: [0, 5, 0]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 -left-20 w-96 h-96 bg-brand-gold/5 rounded-full blur-3xl"
+        />
+        <motion.div 
+          animate={{ 
+            y: [0, 30, 0],
+            rotate: [0, -10, 0]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-brand-gold/5 rounded-full blur-3xl"
+        />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
@@ -55,7 +75,7 @@ export default function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <a 
                 href="#contact" 
-                className="btn-primary flex items-center justify-center gap-2 group"
+                className="btn-primary flex items-center justify-center gap-2 group animate-pulse-gold"
               >
                 Send Inquiry
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -128,4 +148,4 @@ export default function Hero() {
       </div>
     </section>
   );
-}
+});

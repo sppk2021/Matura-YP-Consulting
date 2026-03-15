@@ -34,7 +34,17 @@
 }
 
 .btn-primary {
-  @apply bg-brand-gold text-white px-8 py-3 rounded-sm font-medium transition-all hover:opacity-90 active:scale-95;
+  @apply bg-brand-gold text-brand-navy px-8 py-3 rounded-sm font-bold transition-all hover:bg-white active:scale-95 shadow-lg;
+}
+
+@keyframes pulse-gold {
+  0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
 }
 
 .btn-outline {

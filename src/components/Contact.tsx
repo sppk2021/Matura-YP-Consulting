@@ -32,7 +32,7 @@ export default function Contact() {
     setStatus('submitting');
     
     try {
-      const response = await fetch("https://formsubmit.co/ajax/sawpyaephyokyaw7@gmail.com", {
+      const response = await fetch("https://formsubmit.co/ajax/maturayp.company@gmail.com", {
         method: "POST",
         headers: { 
             'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ export default function Contact() {
                   Thank you for reaching out. We have received your inquiry and our consulting team will get back to you shortly.
                 </p>
                 <div className="bg-brand-navy/50 p-4 rounded-lg border border-white/5 text-sm text-brand-gold/90 max-w-md">
-                  Note: If this is your first time testing the form, please check your email (sawpyaephyokyaw7@gmail.com) to activate the form submissions.
+                  Note: If this is your first time testing the form, please check your email (maturayp.company@gmail.com) to activate the form submissions.
                 </div>
               </div>
             ) : (
@@ -250,7 +250,7 @@ export default function Contact() {
                 <button 
                   type="submit" 
                   disabled={status === 'submitting'}
-                  className="btn-primary w-full flex items-center justify-center gap-3 group py-4 text-lg mt-8 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all duration-300"
+                  className="btn-primary w-full flex items-center justify-center gap-3 group py-4 text-lg mt-8 rounded-xl disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all duration-300 animate-pulse-gold"
                 >
                   {status === 'submitting' ? (
                     <span className="flex items-center gap-2">

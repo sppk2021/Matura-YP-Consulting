@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Settings": {
+      "title": "Settings",
+      "description": "Global settings for the website",
+      "type": "object",
+      "properties": {
+        "mediumUsername": {
+          "type": "string",
+          "description": "The Medium username to fetch posts from"
+        }
+      },
+      "required": ["mediumUsername"]
+    },
+    "CustomPost": {
+      "title": "CustomPost",
+      "description": "Curated custom posts added by the admin",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "link": { "type": "string", "format": "uri" },
+        "pubDate": { "type": "string" },
+        "description": { "type": "string" },
+        "thumbnail": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "link", "pubDate", "description", "thumbnail", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Admin users",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin"] }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "settings/{settingId}": {
+      "schema": { "$ref": "#/entities/Settings" },
+      "description": "Global settings document (e.g., 'global')"
+    },
+    "customPosts/{postId}": {
+      "schema": { "$ref": "#/entities/CustomPost" },
+      "description": "List of curated custom posts"
+    },
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "List of users and their roles"
+    }
+  }
+}

@@ -69,7 +69,7 @@ const publicationCategories = [
   }
 ];
 
-export default function Publication() {
+export default React.memo(function Publication() {
   return (
     <section id="publication" className="section-padding relative">
       <div className="max-w-7xl mx-auto">
@@ -130,4 +130,4 @@ export default function Publication() {
       </div>
     </section>
   );
-}
+});
