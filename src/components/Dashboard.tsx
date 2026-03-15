@@ -121,7 +121,10 @@ export default function Dashboard() {
     if (isAdmin) {
       getDocs(collection(db, 'publications')).then((snapshot) => {
         const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPublications(pubs);
+        const uniquePubs = pubs.filter((pub, index, self) =>
+          index === self.findIndex((p) => p.category === pub.category && p.title === pub.title)
+        );
+        setPublications(uniquePubs);
       }).catch((err) => {
         console.error("Error loading publications:", err);
         console.error("Error code:", err.code);
