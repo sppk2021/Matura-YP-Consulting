@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle, User, Building2, MessageSquare, HelpCircle, Globe, FileText } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle, User, Building2, MessageSquare, HelpCircle, Globe } from 'lucide-react';
 
 // ============================================================================
 // Contact Section Component

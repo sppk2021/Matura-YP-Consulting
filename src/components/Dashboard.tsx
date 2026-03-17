@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Save, RefreshCw, ExternalLink, Plus, Sparkles, Trash2, Lock, User, ShieldCheck, LogIn, Edit2, X, Scale, Search, ChevronLeft, ChevronRight, CheckCircle2, Circle, Settings, FileText, BookOpen, Users, Eye, LayoutDashboard } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, ExternalLink, Plus, Trash2, Lock, User, ShieldCheck, LogIn, Edit2, X, Scale, Search, ChevronLeft, ChevronRight, CheckCircle2, Circle, Settings, BookOpen, Users, Eye, LayoutDashboard } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, RecaptchaVerifier } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
@@ -333,6 +333,19 @@ export default function Dashboard() {
     }
     if (!newAdminEmail || !newAdminPassword) {
       setAdminError("Email and password are required.");
+      return;
+    }
+    
+    // Validation
+    const emailRegex = /\S+@\S+\.\S+/;
+    if (!emailRegex.test(newAdminEmail)) {
+      setAdminError("Invalid email format.");
+      return;
+    }
+    
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    if (!passwordRegex.test(newAdminPassword)) {
+      setAdminError("Password must be at least 8 characters long and include at least one letter and one number.");
       return;
     }
     
