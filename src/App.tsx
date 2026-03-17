@@ -10,7 +10,6 @@ const Services = lazy(() => import('./components/Services'));
 const Publication = lazy(() => import('./components/Publication'));
 const FAQ = lazy(() => import('./components/FAQ'));
 const Blog = lazy(() => import('./components/Blog'));
-const Stats = lazy(() => import('./components/Stats'));
 const Contact = lazy(() => import('./components/Contact'));
 const Footer = lazy(() => import('./components/Footer'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -30,7 +29,6 @@ const Website = () => (
       <Hero />
       <Suspense fallback={<SectionLoader />}>
         <WhoWeAre />
-        <Stats />
         <Services />
         <Publication />
         <Blog />
