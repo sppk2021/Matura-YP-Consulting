@@ -49,10 +49,10 @@ async function startServer() {
 
   // Create Admin User Endpoint
   app.post("/api/admin/create-user", async (req, res) => {
-    const { email, password, adminUid } = req.body;
+    const { email, password, idToken } = req.body;
 
-    if (!email || !password || !adminUid) {
-      return res.status(400).json({ error: "Email, password, and adminUid are required." });
+    if (!email || !password || !idToken) {
+      return res.status(400).json({ error: "Email, password, and idToken are required." });
     }
 
     if (!isFirebaseAdminInitialized) {
@@ -60,8 +60,9 @@ async function startServer() {
     }
 
     try {
-      console.log("Creating user with adminUid:", adminUid);
       // 1. Verify the requester is actually an admin
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      const adminUid = decodedToken.uid;
       const db = admin.firestore();
       const adminUser = await admin.auth().getUser(adminUid);
       console.log("Admin user found:", adminUser.email);

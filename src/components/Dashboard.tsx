@@ -355,13 +355,16 @@ export default function Dashboard() {
     
     try {
       // 1. Create user in Firebase Auth via our backend
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error("User not authenticated.");
+
       const response = await fetch('/api/admin/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email: newAdminEmail.toLowerCase(), 
           password: newAdminPassword,
-          adminUid: auth.currentUser?.uid // For verification on backend
+          idToken: idToken // Use ID token for verification on backend
         })
       });
 
