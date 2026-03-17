@@ -48,7 +48,7 @@ async function startServer() {
   });
 
   // Create Admin User Endpoint
-  app.post("/api/admin/create-user", async (req, res) => {
+  app.post(["/api/admin/create-user", "/api/admin/create-user/"], async (req, res) => {
     const { email, password, idToken } = req.body;
 
     if (!email || !password || !idToken) {
