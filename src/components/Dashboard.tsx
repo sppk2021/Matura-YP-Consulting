@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 import { signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, RecaptchaVerifier } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../firebase';
+import { logAdminAction } from '../services/adminLogger';
 
 export default function Dashboard() {
   // Auth State
@@ -38,8 +39,6 @@ export default function Dashboard() {
   // Admin Management State
   const [allowedAdmins, setAllowedAdmins] = useState<any[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState('');
-  const [newAdminPassword, setNewAdminPassword] = useState('');
-  const [adminError, setAdminError] = useState('');
   const [adminSuccess, setAdminSuccess] = useState('');
 
   // Publications State
@@ -260,6 +259,7 @@ export default function Dashboard() {
 
     try {
       await addDoc(collection(db, 'customPosts'), newPost);
+      await logAdminAction(auth.currentUser?.email || 'unknown', `Created post: ${newPost.title}`);
       // Reset form
       setNewPostLink('');
       setNewPostTopic('');
@@ -305,6 +305,7 @@ export default function Dashboard() {
     }
     try {
       await deleteDoc(doc(db, 'customPosts', id));
+      await logAdminAction(auth.currentUser?.email || 'unknown', `Deleted post: ${id}`);
       setPostToDelete(null);
     } catch (err) {
       console.error(err);
@@ -328,79 +329,37 @@ export default function Dashboard() {
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAdmin) {
-      setAdminError("You do not have permission to add admins.");
+      alert("You do not have permission to add admins.");
       return;
     }
-    if (!newAdminEmail || !newAdminPassword) {
-      setAdminError("Email and password are required.");
+    if (!newAdminEmail) {
+      alert("Email is required.");
       return;
     }
     
     // Validation
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(newAdminEmail)) {
-      setAdminError("Invalid email format.");
+      alert("Invalid email format.");
       return;
     }
-    
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    if (!passwordRegex.test(newAdminPassword)) {
-      setAdminError("Password must be at least 8 characters long and include at least one letter and one number.");
-      return;
-    }
-    
-    setAdminError('');
-    setAdminSuccess('');
-    setIsLoggingIn(true);
     
     try {
-      // 1. Create user in Firebase Auth via our backend
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) throw new Error("User not authenticated.");
-
-      const response = await fetch('/api/admin/create-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: newAdminEmail.toLowerCase(), 
-          password: newAdminPassword,
-          idToken: idToken // Use ID token for verification on backend
-        })
-      });
-
-      let result;
-      const contentType = response.headers.get("content-type");
-      const text = await response.text();
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        try {
-          result = JSON.parse(text);
-        } catch (e) {
-          throw new Error(`Server returned invalid JSON: ${text}`);
-        }
-      } else {
-        throw new Error(`Server returned non-JSON response (Status ${response.status}): ${text || response.statusText}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create user in Firebase Auth.');
-      }
-
-      // 2. Add to allowedAdmins collection
+      // Add to allowedAdmins collection
       await setDoc(doc(db, 'allowedAdmins', newAdminEmail.toLowerCase()), {
         email: newAdminEmail.toLowerCase(),
         role: 'admin',
         createdAt: new Date().toISOString()
       });
 
+      await logAdminAction(auth.currentUser?.email || 'unknown', `Added admin: ${newAdminEmail}`);
+
       setNewAdminEmail('');
-      setNewAdminPassword('');
-      setAdminSuccess('Admin created and added successfully.');
+      setAdminSuccess('Admin added successfully.');
       setTimeout(() => setAdminSuccess(''), 5000);
     } catch (err: any) {
       console.error(err);
-      setAdminError(err.message || 'Failed to add admin.');
-    } finally {
-      setIsLoggingIn(false);
+      alert(`Failed to add admin: ${err.message || 'Check permissions.'}`);
     }
   };
 
@@ -450,6 +409,7 @@ export default function Dashboard() {
     const updated = [...categories, newCategoryName];
     try {
       await setDoc(doc(db, 'settings', 'categories'), { list: updated });
+      await logAdminAction(auth.currentUser?.email || 'unknown', `Added category: ${newCategoryName}`);
       setNewCategoryName('');
     } catch (e) {
       console.error(e);
@@ -461,6 +421,7 @@ export default function Dashboard() {
     const updated = categories.filter(c => c !== cat);
     try {
       await setDoc(doc(db, 'settings', 'categories'), { list: updated });
+      await logAdminAction(auth.currentUser?.email || 'unknown', `Deleted category: ${cat}`);
     } catch (e) {
       console.error(e);
     }
@@ -482,6 +443,7 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this publication?')) return;
     try {
       await deleteDoc(doc(db, 'publications', id));
+      await logAdminAction(auth.currentUser?.email || 'unknown', `Deleted publication: ${id}`);
       setPubSuccess('Publication deleted successfully');
       setTimeout(() => setPubSuccess(''), 3000);
     } catch (err) {
@@ -586,6 +548,7 @@ export default function Dashboard() {
     }
     try {
       await deleteDoc(doc(db, 'allowedAdmins', emailId));
+      await logAdminAction(auth.currentUser?.email || 'unknown', `Removed admin: ${emailId}`);
     } catch (err) {
       console.error(err);
       alert('Failed to remove admin.');
@@ -1191,9 +1154,8 @@ export default function Dashboard() {
           <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <h4 className="text-sm font-bold text-blue-400 mb-2">Admin Setup Guide:</h4>
             <ol className="text-xs text-gray-300 list-decimal list-inside space-y-1">
+              <li>Create the user account in your <strong>Firebase Console &gt; Authentication &gt; Users</strong>.</li>
               <li>Add the new admin's email address below to grant them database access.</li>
-              <li>If they use Google Sign-In, they are all set!</li>
-              <li>If they need an Email/Password login, go to your <strong>Firebase Console &gt; Authentication &gt; Users</strong> and create an account with the same email and a secure password.</li>
             </ol>
           </div>
           
@@ -1211,34 +1173,18 @@ export default function Dashboard() {
                     className="w-full bg-brand-navy/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold focus:ring-1 transition-all disabled:opacity-50"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Initial Password</label>
-                  <input
-                    type="password"
-                    value={newAdminPassword}
-                    onChange={(e) => setNewAdminPassword(e.target.value)}
-                    placeholder="••••••••"
-                    disabled={!isAdmin || isLoggingIn}
-                    className="w-full bg-brand-navy/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-gold focus:ring-1 transition-all disabled:opacity-50"
-                  />
-                </div>
                 <button
                   type="submit"
-                  disabled={!newAdminEmail || !newAdminPassword || !isAdmin || isLoggingIn}
+                  disabled={!newAdminEmail || !isAdmin || isLoggingIn}
                   className="btn-primary flex items-center justify-center gap-2 w-full py-3 disabled:opacity-50"
                 >
                   {isLoggingIn ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                  Create & Add Admin
+                  Add Admin
                 </button>
               </form>
               {adminSuccess && (
                 <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm">
                   {adminSuccess}
-                </div>
-              )}
-              {adminError && (
-                <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-sm">
-                  {adminError}
                 </div>
               )}
             </div>
