@@ -367,11 +367,15 @@ export default function Dashboard() {
 
       let result;
       const contentType = response.headers.get("content-type");
+      const text = await response.text();
       if (contentType && contentType.indexOf("application/json") !== -1) {
-        result = await response.json();
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Server returned invalid JSON: ${text}`);
+        }
       } else {
-        const text = await response.text();
-        throw new Error(`Server returned non-JSON response: ${text || response.statusText}`);
+        throw new Error(`Server returned non-JSON response (Status ${response.status}): ${text || response.statusText}`);
       }
 
       if (!response.ok) {

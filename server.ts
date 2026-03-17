@@ -51,6 +51,10 @@ async function startServer() {
   app.post("/api/admin/create-user", async (req, res) => {
     const { email, password, adminUid } = req.body;
 
+    if (!email || !password || !adminUid) {
+      return res.status(400).json({ error: "Email, password, and adminUid are required." });
+    }
+
     if (!isFirebaseAdminInitialized) {
       return res.status(500).json({ error: "Firebase Admin is not configured. Please add FIREBASE_SERVICE_ACCOUNT to settings or upload the JSON file." });
     }
