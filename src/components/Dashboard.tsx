@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Save, RefreshCw, ExternalLink, Plus, Sparkles, Trash2, Lock, User, ShieldCheck, LogIn, Edit2, X, Scale, Search, ChevronLeft, ChevronRight, CheckCircle2, Circle, Settings } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, ExternalLink, Plus, Sparkles, Trash2, Lock, User, ShieldCheck, LogIn, Edit2, X, Scale, Search, ChevronLeft, ChevronRight, CheckCircle2, Circle, Settings, FileText, BookOpen, Users, Eye, LayoutDashboard } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, RecaptchaVerifier } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
@@ -59,6 +59,9 @@ export default function Dashboard() {
   const [showCatManager, setShowCatManager] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<{old: string, new: string} | null>(null);
+
+  // Sidebar Navigation State
+  const [activeTab, setActiveTab] = useState<'curated' | 'publications' | 'admin' | 'preview'>('curated');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -120,7 +123,7 @@ export default function Dashboard() {
     // Load Publications
     if (isAdmin) {
       getDocs(collection(db, 'publications')).then((snapshot) => {
-        const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const pubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
         const uniquePubs = pubs.filter((pub, index, self) =>
           index === self.findIndex((p) => p.category === pub.category && p.title === pub.title)
         );
@@ -349,7 +352,15 @@ export default function Dashboard() {
         })
       });
 
-      const result = await response.json();
+      let result;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(`Server returned non-JSON response: ${text || response.statusText}`);
+      }
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to create user in Firebase Auth.');
       }
@@ -718,9 +729,47 @@ export default function Dashboard() {
           </div>
         )}
         
-        <div className="grid lg:grid-cols-1 gap-8 mb-8">
-          {/* Section 1: Curate Custom Posts */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg flex flex-col">
+        <div className="flex flex-col md:flex-row gap-8 mb-8">
+          {/* Sidebar */}
+          <div className="w-full md:w-64 shrink-0">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2 sticky top-6">
+              <button 
+                onClick={() => setActiveTab('curated')}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 'curated' ? 'bg-brand-gold text-brand-navy font-medium' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                Curated Posts
+              </button>
+              <button 
+                onClick={() => setActiveTab('publications')}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 'publications' ? 'bg-brand-gold text-brand-navy font-medium' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
+              >
+                <BookOpen className="w-5 h-5" />
+                Publications & Laws
+              </button>
+              <button 
+                onClick={() => setActiveTab('admin')}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 'admin' ? 'bg-brand-gold text-brand-navy font-medium' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
+              >
+                <Users className="w-5 h-5" />
+                Admin Management
+              </button>
+              <button 
+                onClick={() => setActiveTab('preview')}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeTab === 'preview' ? 'bg-brand-gold text-brand-navy font-medium' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}
+              >
+                <Eye className="w-5 h-5" />
+                Live Preview
+              </button>
+            </div>
+          </div>
+          
+          {/* Main Content */}
+          <div className="flex-grow min-w-0">
+            {activeTab === 'curated' && (
+              <div className="space-y-8">
+                {/* Section 1: Curate Custom Posts */}
+                <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg flex flex-col">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Plus className="w-5 h-5 text-brand-gold" />
               Curate Custom Post
@@ -762,8 +811,12 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Section 2: Publications & Laws */}
+            {/* Section 2: Publications & Laws */}
+            {activeTab === 'publications' && (
+        <div className="space-y-8">
           <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
@@ -1101,9 +1154,12 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
 
-        {/* Section 2: Admin Management */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg mb-8">
+            {/* Section 3: Admin Management */}
+            {activeTab === 'admin' && (
+        <div className="space-y-8">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 shadow-lg mb-8">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <User className="w-5 h-5 text-brand-gold" />
             Admin Management
@@ -1196,9 +1252,13 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+        </div>
+      )}
 
-        {/* Live Preview Section */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6 md:p-8 shadow-lg">
+            {/* Live Preview Section */}
+            {activeTab === 'preview' && (
+        <div className="space-y-8">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 md:p-8 shadow-lg">
           <h2 className="text-xl font-bold mb-6">Live Website Preview</h2>
           
           {/* Custom Curated Posts */}
@@ -1244,8 +1304,12 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+    )}
+    </div>
+  </div>
+</div>
 
-      {/* Edit Post Modal */}
+{/* Edit Post Modal */}
       {editingPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-brand-navy border border-white/10 rounded-xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">

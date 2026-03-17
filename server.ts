@@ -3,24 +3,37 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import admin from "firebase-admin";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize Firebase Admin
-// Note: User needs to provide FIREBASE_SERVICE_ACCOUNT in settings
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  try {
+let isFirebaseAdminInitialized = false;
+
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
-    console.log("Firebase Admin initialized successfully.");
-  } catch (e) {
-    console.error("Error initializing Firebase Admin:", e);
+    isFirebaseAdminInitialized = true;
+    console.log("Firebase Admin initialized successfully from environment variable.");
+  } else {
+    const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      isFirebaseAdminInitialized = true;
+      console.log("Firebase Admin initialized successfully from local file.");
+    } else {
+      console.warn("FIREBASE_SERVICE_ACCOUNT not found and local file missing. Admin creation via dashboard will be disabled.");
+    }
   }
-} else {
-  console.warn("FIREBASE_SERVICE_ACCOUNT not found. Admin creation via dashboard will be disabled.");
+} catch (e) {
+  console.error("Error initializing Firebase Admin:", e);
 }
 
 async function startServer() {
@@ -38,14 +51,16 @@ async function startServer() {
   app.post("/api/admin/create-user", async (req, res) => {
     const { email, password, adminUid } = req.body;
 
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      return res.status(500).json({ error: "Firebase Admin is not configured. Please add FIREBASE_SERVICE_ACCOUNT to settings." });
+    if (!isFirebaseAdminInitialized) {
+      return res.status(500).json({ error: "Firebase Admin is not configured. Please add FIREBASE_SERVICE_ACCOUNT to settings or upload the JSON file." });
     }
 
     try {
+      console.log("Creating user with adminUid:", adminUid);
       // 1. Verify the requester is actually an admin
       const db = admin.firestore();
       const adminUser = await admin.auth().getUser(adminUid);
+      console.log("Admin user found:", adminUser.email);
       
       // Primary admin check
       const isPrimaryAdmin = adminUser.email?.toLowerCase() === 'sawpyaephyokyaw7@gmail.com';

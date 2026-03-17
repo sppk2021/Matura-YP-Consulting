@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Ignore sensitive credentials and test scripts
+firebase-service-account.json
+test-*.cjs
+test-*.js
