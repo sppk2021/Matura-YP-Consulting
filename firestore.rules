@@ -68,7 +68,7 @@ service cloud.firestore {
              isValidOptionalUrl('thumbnail') &&
              isValidOptionalString('pubDate', 0, 100) &&
              isValidOptionalString('description', 0, 10000) &&
-             isValidOptionalString('createdAt', 0, 100) &&
+             (isValidOptionalString('createdAt', 0, 100) || request.resource.data.createdAt is timestamp) &&
              isValidOptionalString('content', 0, 100000) &&
              isValidOptionalString('author', 0, 200) &&
              isValidOptionalString('guid', 0, 500) &&

@@ -67,8 +67,9 @@ export default React.memo(function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="max-w-7xl mx-auto px-6 mt-6 pt-4 border-t border-white/20 text-center text-white/70 text-xs">
-          © {new Date().getFullYear()} Matura YP Consulting & Audit Co., Ltd. | All Rights Reserved
+        <div className="max-w-7xl mx-auto px-6 mt-6 pt-4 border-t border-white/20 flex flex-col sm:flex-row justify-between items-center text-white/70 text-xs gap-2">
+          <span>© {new Date().getFullYear()} Matura YP Consulting & Audit Co., Ltd. | All Rights Reserved</span>
+          <span>Developed by CNMax Digital</span>
         </div>
       </div>
     </footer>

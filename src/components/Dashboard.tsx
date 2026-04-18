@@ -99,9 +99,15 @@ export default function Dashboard() {
     if (!isLoggedIn) return;
 
     // Load Custom Posts
-    const q = query(collection(db, 'customPosts'), orderBy('createdAt', 'desc'));
+    const q = collection(db, 'customPosts');
     const unsubscribePosts = onSnapshot(q, (snapshot) => {
       const posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Sort in JS to ensure items missing createdAt still show up
+      posts.sort((a: any, b: any) => {
+        const dateA = a.createdAt ? (a.createdAt.seconds || new Date(a.createdAt).getTime()) : 0;
+        const dateB = b.createdAt ? (b.createdAt.seconds || new Date(b.createdAt).getTime()) : 0;
+        return dateB - dateA;
+      });
       setCustomPosts(posts);
     }, (err) => {
       console.error("Error loading custom posts:", err);

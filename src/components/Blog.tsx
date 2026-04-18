@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, ArrowRight, ExternalLink } from 'lucide-react';
-import { doc, getDoc, collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { fallbackPosts } from '../constants/blog';
 
@@ -10,76 +10,93 @@ import { fallbackPosts } from '../constants/blog';
 // ============================================================================
 
 export default function Blog() {
-  const [posts, setPosts] = useState<any[]>([]);
+  const [customPosts, setCustomPosts] = useState<any[]>([]);
+  const [mediumPosts, setMediumPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [mediumUrl, setMediumUrl] = useState('https://medium.com');
 
   useEffect(() => {
-    const fetchBlogData = async () => {
+    // 1. Fetch Medium Posts
+    const fetchMediumPosts = async () => {
       try {
-        // 1. Fetch Settings (Medium Username)
         const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
         const storedUsername = settingsSnap.exists() ? settingsSnap.data().mediumUsername : null;
         
-        let mediumPosts: any[] = [];
         if (storedUsername && storedUsername !== '@medium') {
           const formattedUser = storedUsername.startsWith('@') ? storedUsername : `@${storedUsername}`;
           setMediumUrl(`https://medium.com/${formattedUser}`);
           const mediumRSSUrl = `https://medium.com/feed/${formattedUser}`; 
           const rss2jsonUrl = `https://api.rss2json.com/v1/api.json?rss_url=${mediumRSSUrl}`;
 
-          try {
-            const res = await fetch(rss2jsonUrl);
-            const data = await res.json();
-            if (data.status === 'ok' && data.items) {
-              mediumPosts = data.items.map((item: any) => {
-                // Extract thumbnail from content if not provided directly
-                let thumbnail = item.thumbnail;
-                if (!thumbnail || thumbnail === '') {
-                  const content = item.content || item.description || '';
-                  const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
-                  thumbnail = imgMatch ? imgMatch[1] : 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800';
-                }
+          const res = await fetch(rss2jsonUrl);
+          const data = await res.json();
+          if (data.status === 'ok' && data.items) {
+            const mPosts = data.items.map((item: any) => {
+              let thumbnail = item.thumbnail;
+              if (!thumbnail || thumbnail === '') {
+                const content = item.content || item.description || '';
+                const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
+                thumbnail = imgMatch ? imgMatch[1] : 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800';
+              }
 
-                return {
-                  title: item.title,
-                  pubDate: item.pubDate,
-                  link: item.link,
-                  thumbnail: thumbnail,
-                  description: item.description.replace(/<[^>]+>/g, '').substring(0, 120) + '...'
-                };
-              });
-            }
-          } catch (err) {
-            console.error('Error fetching Medium posts:', err);
+              return {
+                title: item.title,
+                pubDate: item.pubDate,
+                link: item.link,
+                thumbnail: thumbnail,
+                description: item.description.replace(/<[^>]+>/g, '').substring(0, 120) + '...'
+              };
+            });
+            setMediumPosts(mPosts);
           }
         }
-
-        // 2. Fetch Custom Posts
-        const customPostsQuery = query(collection(db, 'customPosts'), orderBy('createdAt', 'desc'));
-        const customPostsSnap = await getDocs(customPostsQuery);
-        const customPosts = customPostsSnap.docs.map(doc => doc.data());
-
-        // 3. Combine and Set
-        const combined = [...customPosts, ...mediumPosts]
-          .filter(post => post.title !== 'TEST') // Filter out test posts
-          .slice(0, 3);
-        
-        setPosts(combined.length > 0 ? combined : fallbackPosts);
       } catch (err) {
-        console.error("Error fetching blog data:", err);
-        setPosts(fallbackPosts);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching Medium posts:', err);
       }
     };
 
-    fetchBlogData();
+    // 2. Fetch Custom Posts (Live, no orderBy on server to prevent hiding items)
+    const q = collection(db, 'customPosts');
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const cPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setCustomPosts(cPosts);
+      setLoading(false);
+    }, (err) => {
+      console.error("Error fetching custom posts:", err);
+      setLoading(false);
+    });
+
+    fetchMediumPosts();
+
+    return () => unsubscribe();
   }, []);
 
+  // Compute and sort final posts list
+  const allPosts = React.useMemo(() => {
+    const combined = [...customPosts, ...mediumPosts];
+    
+    // Sort combined list: Custom posts first (desc by createdAt if exists), then Medium
+    combined.sort((a, b) => {
+      const dateA = a.createdAt ? (a.createdAt.seconds || new Date(a.createdAt).getTime()) : new Date(a.pubDate || 0).getTime();
+      const dateB = b.createdAt ? (b.createdAt.seconds || new Date(b.createdAt).getTime()) : new Date(b.pubDate || 0).getTime();
+      return dateB - dateA;
+    });
+
+    if (combined.length === 0 && !loading) {
+      return fallbackPosts;
+    }
+    return combined;
+  }, [customPosts, mediumPosts, loading]);
+
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    } catch (e) {
+      return dateString;
+    }
   };
 
   return (
@@ -129,9 +146,9 @@ export default function Blog() {
               </div>
             ))
           ) : (
-            posts.map((post, index) => (
+            allPosts.map((post, index) => (
               <motion.article
-                key={index}
+                key={post.id || post.link || index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
